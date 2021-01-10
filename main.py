@@ -1,6 +1,7 @@
 from datetime import datetime
 import glob
 import os
+from tabulate import tabulate
 
 num_slots = 24
 
@@ -19,14 +20,14 @@ def copy_data():
         data = [int(x) for x in data]
 
     now = datetime.now()
-    dt = now.strftime("%d-%m-%Y_%H%M%S") + '.txt'
+    dt = now.strftime("%Y-%m-%d_%H%M%S") + '.txt'
 
-    with open(dt, 'w+') as stream:
+    with open(f'temp/{dt}', 'w+') as stream:
         for x in data:
             stream.write(f'{x}\n')
 
 def get_data_and_prices():
-    list_of_files = sorted(filter(lambda x: '-' in x, glob.glob('*.txt')), reverse=True)
+    list_of_files = sorted(filter(lambda x: '-' in x, glob.glob('temp/*.txt')), reverse=True)
     new = list_of_files[0]
     old = list_of_files[1]
     with open(new, 'r') as stream:
@@ -102,12 +103,26 @@ def get_sales(new_data, old_data, prices):
 def main():
     copy_data()
     new, old, prices = get_data_and_prices()
-    print(old)
-    print(new)
-    print(prices)
-    sales = get_sales(new, old, prices)
-    print(sales)
-    print(f'Total Sales: {sum(sales)}')
 
+    # print(old)
+    # print(new)
+    # print(prices)
+    sales = get_sales(new, old, prices)
+    # print(sales)
+    # print(f'Total Sales: {sum(sales)}')
+
+    print(
+        tabulate(
+            [
+                ['New'] + new,
+                ['Old'] + old,
+                ['Prices'] + prices,
+                ['Sales'] + sales
+            ],
+            ['Slot'] + [x + 1 for x in range(num_slots + 1)]
+        )
+    )
+
+    print(f'Total Sales: {sum(sales)}')
 
 main()

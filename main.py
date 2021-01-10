@@ -51,7 +51,7 @@ def get_sales(new_data, old_data, prices):
             if (old_data[i] != 0):
                 sale = ((book_count[str(pc)] + 1) - old_data[i]) * pc
             sales.append(sale)
-        if (old_data[i] == 0 and new_data[i] > 0):
+        elif (old_data[i] == 0 and new_data[i] > 0):
             pc = prices[i]
             n_pc = int(input(f'Num {i} new price (default {pc})? ') or pc)
             # change price in prices.txt

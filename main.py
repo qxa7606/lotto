@@ -2,7 +2,7 @@ from datetime import datetime
 import glob
 import os
 
-num_slots = 6
+num_slots = 24
 
 book_count = {
     '1': 250,
@@ -100,7 +100,7 @@ def get_sales(new_data, old_data, prices):
     return sales
 
 def main():
-    #copy_data()
+    copy_data()
     new, old, prices = get_data_and_prices()
     print(old)
     print(new)

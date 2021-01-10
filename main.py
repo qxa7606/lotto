@@ -74,6 +74,8 @@ def get_sales(new_data, old_data, prices):
             old_sales = ((book_count[str(pc)] + 1) - old_data[i]) * pc
             new_sales = (new_data[i] - 1) * n_pc
             sales.append(old_sales + new_sales)
+        else:
+            sales.append(0)
 
     if len(price_change):
         new_prices = []

@@ -54,7 +54,7 @@ def get_sales(new_data, old_data, prices):
             sales.append(sale)
         elif (old_data[i] == 0 and new_data[i] > 0):
             pc = prices[i]
-            n_pc = int(input(f'Num {i} new price (default {pc})? ') or pc)
+            n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
             # change price in prices.txt
             if (pc != n_pc):
                 price_change[str(i)] = n_pc
@@ -68,7 +68,7 @@ def get_sales(new_data, old_data, prices):
         # new book added (different price), (same price)
         elif (new_data[i] < old_data[i]):
             pc = prices[i]
-            n_pc = int(input(f'Num {i} new price (default {pc})? ') or pc)
+            n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
             # change price in prices.txt
             if (pc != n_pc):
                 price_change[str(i)] = n_pc
@@ -104,12 +104,12 @@ def main():
     copy_data()
     new, old, prices = get_data_and_prices()
 
-    # print(old)
-    # print(new)
-    # print(prices)
+    print(old)
+    print(new)
+    print(prices)
     sales = get_sales(new, old, prices)
-    # print(sales)
-    # print(f'Total Sales: {sum(sales)}')
+    print(sales)
+    print(f'Total Sales: {sum(sales)}')
 
     print(
         tabulate(

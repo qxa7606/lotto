@@ -2,8 +2,9 @@ from datetime import datetime
 import glob
 import os
 from tabulate import tabulate
+from order import orders
 
-num_slots = 24
+num_slots = 31
 
 book_count = {
     '1': 250,
@@ -45,38 +46,73 @@ def get_sales(new_data, old_data, prices):
     price_change = {}
     sales = []
     for i in range(num_slots):
-        # end of book
-        if (new_data[i] == 0):
-            pc = prices[i]
-            sale = 0
-            if (old_data[i] != 0):
-                sale = ((book_count[str(pc)] + 1) - old_data[i]) * pc
-            sales.append(sale)
-        elif (old_data[i] == 0 and new_data[i] > 0):
-            pc = prices[i]
-            n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
-            # change price in prices.txt
-            if (pc != n_pc):
-                price_change[str(i)] = n_pc
-            sale = (new_data[i] - 1) * n_pc
-            sales.append(sale)
-        # normal increase
-        elif (new_data[i] > old_data[i]):
-            pc = prices[i]
-            sale = (new_data[i] - old_data[i]) * pc
-            sales.append(sale)
-        # new book added (different price), (same price)
-        elif (new_data[i] < old_data[i]):
-            pc = prices[i]
-            n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
-            # change price in prices.txt
-            if (pc != n_pc):
-                price_change[str(i)] = n_pc
-            old_sales = ((book_count[str(pc)] + 1) - old_data[i]) * pc
-            new_sales = (new_data[i] - 1) * n_pc
-            sales.append(old_sales + new_sales)
+        if orders[i] == True:
+            # end of book
+            if (new_data[i] == 0):
+                pc = prices[i]
+                sale = 0
+                if (old_data[i] != 0):
+                    sale = ((book_count[str(pc)] + 1) - old_data[i]) * pc
+                sales.append(sale)
+            elif (old_data[i] == 0 and new_data[i] > 0):
+                pc = prices[i]
+                n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
+                # change price in prices.txt
+                if (pc != n_pc):
+                    price_change[str(i)] = n_pc
+                sale = (new_data[i] - 1) * n_pc
+                sales.append(sale)
+            # normal increase
+            elif (new_data[i] > old_data[i]):
+                pc = prices[i]
+                sale = (new_data[i] - old_data[i]) * pc
+                sales.append(sale)
+            # new book added (different price), (same price)
+            elif (new_data[i] < old_data[i]):
+                pc = prices[i]
+                n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
+                # change price in prices.txt
+                if (pc != n_pc):
+                    price_change[str(i)] = n_pc
+                old_sales = ((book_count[str(pc)] + 1) - old_data[i]) * pc
+                new_sales = (new_data[i] - 1) * n_pc
+                sales.append(old_sales + new_sales)
+            else:
+                sales.append(0)
         else:
-            sales.append(0)
+            # end of book
+            if (new_data[i] == 0):
+                pc = prices[i]
+                sale = 0
+                if (old_data[i] != 0):
+                    sale = old_data[i] * pc
+                sales.append(sale)
+            # elif (old_data[i] == 0 and new_data[i] > 0):
+            #     pc = prices[i]
+            #     n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
+            #     # change price in prices.txt
+            #     if (pc != n_pc):
+            #         price_change[str(i)] = n_pc
+                
+            #     sale = (new_data[i] - 1) * n_pc
+            #     sales.append(sale)
+            # normal increase
+            elif (new_data[i] < old_data[i]):
+                pc = prices[i]
+                sale = (old_data[i] - new_data[i]) * pc
+                sales.append(sale)
+            # new book added (different price), (same price)
+            elif (new_data[i] > old_data[i]):
+                pc = prices[i]
+                n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
+                # change price in prices.txt
+                if (pc != n_pc):
+                    price_change[str(i)] = n_pc
+                old_sales = old_data[i] * pc
+                new_sales = (book_count[str(n_pc)] - new_data[i]) * n_pc
+                sales.append(old_sales + new_sales)
+            else:
+                sales.append(0)
 
     if len(price_change):
         new_prices = []

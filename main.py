@@ -2,9 +2,6 @@ from datetime import datetime
 import glob
 import os
 from tabulate import tabulate
-from order import orders
-
-num_slots = 31
 
 book_count = {
     '1': 250,
@@ -14,6 +11,53 @@ book_count = {
     '10': 50,
     '20': 50
 }
+
+prices_of_games = {
+    '1408': 1,
+    '1460': 20,
+    '1439': 20,
+    '1400': 10,
+    '1465': 10,
+    '1448': 10,
+    '1456': 10,
+    '1450': 5,
+    '1466': 5,
+    '1408': 1,
+    '1463': 1,
+    '1455': 1,
+    '1444': 2,
+    '1393': 2,
+    '1429': 2,
+    '1458': 5,
+    '1461': 5,
+    '1479': 5,
+    '1447': 5,
+    '1440': 5,
+    '1424': 5,
+    '1443': 5,
+    '1441': 5,
+    '1419': 10,
+    '1454': 1,
+    '1451': 3,
+    '1473': 3,
+    '1482': 5,
+    '1449': 10,
+    '1425': 20,
+    '1395': 5,
+    '1471': 1,
+    '1423': 2
+}
+
+# add 1 for actual num
+special_endings = {
+    24: 68,
+    27: 86,
+    29: 77,
+    30: 44,
+    8: 43,
+    11: 85
+}
+
 
 def copy_data():
     with open("data.txt", 'r') as stream:
@@ -27,8 +71,10 @@ def copy_data():
         for x in data:
             stream.write(f'{x}\n')
 
+
 def get_data_and_prices():
-    list_of_files = sorted(filter(lambda x: '-' in x, glob.glob('temp/*.txt')), reverse=True)
+    list_of_files = sorted(
+        filter(lambda x: '-' in x, glob.glob('temp/*.txt')), reverse=True)
     new = list_of_files[0]
     old = list_of_files[1]
     with open(new, 'r') as stream:
@@ -37,122 +83,79 @@ def get_data_and_prices():
     with open(old, 'r') as stream:
         old_data = stream.read().splitlines()
         old_data = [int(x) for x in old_data]
-    with open('prices.txt', 'r') as stream:
-        prices = stream.read().splitlines()
-        prices = [int(x) for x in prices]
-    return new_data, old_data, prices
+    return new_data, old_data
 
-def get_sales(new_data, old_data, prices):
-    price_change = {}
+
+def getNum(s):
+    if (s == '0' or s == 0):
+        return 0
+    return int(str(s)[11:14])
+
+
+def getPrice(s):
+    if (s == '0' or s == 0):
+        return 0
+    return prices_of_games[str(s)[0:4]]
+
+
+def getGame(s):
+    if (s == '0' or s == 0):
+        return 0
+    return str(s)[0:4]
+
+
+def get_sales(new_data, old_data, num_slots):
     sales = []
     for i in range(num_slots):
-        if orders[i] == True:
-            # end of book
-            if (new_data[i] == 0):
-                pc = prices[i]
-                sale = 0
-                if (old_data[i] != 0):
-                    sale = ((book_count[str(pc)] + 1) - old_data[i]) * pc
-                sales.append(sale)
-            elif (old_data[i] == 0 and new_data[i] > 0):
-                pc = prices[i]
-                n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
-                # change price in prices.txt
-                if (pc != n_pc):
-                    price_change[str(i)] = n_pc
-                sale = (new_data[i] - 1) * n_pc
-                sales.append(sale)
-            # normal increase
-            elif (new_data[i] > old_data[i]):
-                pc = prices[i]
-                sale = (new_data[i] - old_data[i]) * pc
-                sales.append(sale)
-            # new book added (different price), (same price)
-            elif (new_data[i] < old_data[i]):
-                pc = prices[i]
-                n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
-                # change price in prices.txt
-                if (pc != n_pc):
-                    price_change[str(i)] = n_pc
-                old_sales = ((book_count[str(pc)] + 1) - old_data[i]) * pc
-                new_sales = (new_data[i] - 1) * n_pc
-                sales.append(old_sales + new_sales)
-            else:
-                sales.append(0)
+        sale = 0
+        # end of book
+        if (getNum(new_data[i]) == 0):
+            if (getNum(old_data[i]) != 0):
+                pc = getPrice(old_data[i])
+                if i in special_endings:
+                    sale = (getNum(old_data[i]) - special_endings[i]) * pc
+                    print('REMOVE index ' + i + 'from special endings')
+                else:
+                    sale = getNum(old_data[i]) * pc
+        # something still in the slot
         else:
-            # end of book
-            if (new_data[i] == 0):
-                pc = prices[i]
-                sale = 0
-                if (old_data[i] != 0):
-                    sale = old_data[i] * pc
-                sales.append(sale)
-            # elif (old_data[i] == 0 and new_data[i] > 0):
-            #     pc = prices[i]
-            #     n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
-            #     # change price in prices.txt
-            #     if (pc != n_pc):
-            #         price_change[str(i)] = n_pc
-                
-            #     sale = (new_data[i] - 1) * n_pc
-            #     sales.append(sale)
-            # normal increase
-            elif (new_data[i] < old_data[i]):
-                pc = prices[i]
-                sale = (old_data[i] - new_data[i]) * pc
-                sales.append(sale)
-            # new book added (different price), (same price)
-            elif (new_data[i] > old_data[i]):
-                pc = prices[i]
-                n_pc = int(input(f'Num {i + 1} new price (default {pc})? ') or pc)
-                # change price in prices.txt
-                if (pc != n_pc):
-                    price_change[str(i)] = n_pc
-                old_sales = old_data[i] * pc
-                new_sales = (book_count[str(n_pc)] - new_data[i]) * n_pc
-                sales.append(old_sales + new_sales)
+            # previous was 0
+            if (getNum(old_data[i]) == 0):
+                sale = (book_count[str(getPrice(new_data[i]))] -
+                        getNum(new_data[i])) * getPrice(new_data[i])
+            # previous was non-0
             else:
-                sales.append(0)
-
-    if len(price_change):
-        new_prices = []
-        for i in range(num_slots):
-            new_prices.append(price_change.get(str(i), prices[i]))
-        try:
-            os.remove('prices_old.txt')
-        except OSError:
-            pass
-        os.rename('prices.txt', 'prices_old.txt')
-
-        print()
-        print('Updating prices')
-        print(f'Old Prices: {prices}')
-        print(f'New Prices: {new_prices}')
-        print(price_change)
-        print()
-        with open('prices.txt', 'w+') as stream:
-            for x in new_prices:
-                stream.write(f'{x}\n')
-
+                # normal decrease
+                if (getNum(new_data[i]) <= getNum(old_data[i])) and (getGame(new_data[i]) == getGame(old_data[i])):
+                    sale = (
+                        getNum(old_data[i]) - getNum(new_data[i])) * getPrice(new_data[i])
+                # new book
+                else:
+                    old_sale = getNum(old_data[i]) * getPrice(old_data[i])
+                    if i in special_endings:
+                        old_sale = (
+                            getNum(old_data[i]) - special_endings[i]) * pc
+                        print('REMOVE index ' + i + 'from special endings')
+                    new_sale = (book_count[str(getPrice(new_data[i]))] -
+                                getNum(new_data[i])) * getPrice(new_data[i])
+                    sale = old_sale + new_sale
+        sales.append(sale)
     return sales
+
 
 def main():
     copy_data()
-    new, old, prices = get_data_and_prices()
-
-    print(old)
-    print(new)
-    print(prices)
-    sales = get_sales(new, old, prices)
-    print(sales)
+    new, old = get_data_and_prices()
+    num_slots = max(len(new), len(old))
+    sales = get_sales(new, old, num_slots)
+    # print(sales)
     print(f'Total Sales: {sum(sales)}')
 
     print(
         tabulate(
             [
-                ['New'] + new,
-                ['Old'] + old,
-                ['Prices'] + prices,
+                ['Old'] + [str(x)[11:14] for x in old],
+                ['New'] + [str(x)[11:14] for x in new],
                 ['Sales'] + sales
             ],
             ['Slot'] + [x + 1 for x in range(num_slots + 1)]
@@ -160,5 +163,6 @@ def main():
     )
 
     print(f'Total Sales: {sum(sales)}')
+
 
 main()

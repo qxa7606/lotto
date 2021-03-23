@@ -9,7 +9,8 @@ book_count = {
     '3': 100,
     '5': 100,
     '10': 50,
-    '20': 50
+    '20': 50,
+	'30': 50
 }
 
 prices_of_games = {
@@ -45,17 +46,21 @@ prices_of_games = {
     '1425': 20,
     '1395': 5,
     '1471': 1,
-    '1423': 2
+    '1423': 2,
+	'1470': 2,
+	'1472': 10,
+	'1468': 30,
+	'1405': 5,
+	'1431': 5,
+	'1407': 5,
+	'1442': 3
 }
 
 # add 1 for actual num
 special_endings = {
-    24: 68,
-    27: 86,
     29: 77,
     30: 44,
-    8: 43,
-    11: 85
+	0: 6
 }
 
 
@@ -114,7 +119,7 @@ def get_sales(new_data, old_data, num_slots):
                 pc = getPrice(old_data[i])
                 if i in special_endings:
                     sale = (getNum(old_data[i]) - special_endings[i]) * pc
-                    print('REMOVE index ' + i + 'from special endings')
+                    print('REMOVE index ' + str(i) + 'from special endings')
                 else:
                     sale = getNum(old_data[i]) * pc
         # something still in the slot
@@ -134,8 +139,8 @@ def get_sales(new_data, old_data, num_slots):
                     old_sale = getNum(old_data[i]) * getPrice(old_data[i])
                     if i in special_endings:
                         old_sale = (
-                            getNum(old_data[i]) - special_endings[i]) * pc
-                        print('REMOVE index ' + i + 'from special endings')
+                            getNum(old_data[i]) - special_endings[i]) * getPrice(old_data[i])
+                        print('REMOVE index ' + str(i) + 'from special endings')
                     new_sale = (book_count[str(getPrice(new_data[i]))] -
                                 getNum(new_data[i])) * getPrice(new_data[i])
                     sale = old_sale + new_sale

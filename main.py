@@ -53,14 +53,24 @@ prices_of_games = {
 	'1405': 5,
 	'1431': 5,
 	'1407': 5,
-	'1442': 3
+	'1442': 3,
+    '1476': 1,
+    '1475': 2,
+    '1459': 1,
+    '1452': 5,
+    '1446': 1,
+    '1480': 2,
+    '1467': 5,
+    '1477': 2,
+    '1462': 2,
+    '1484': 2,
+    '1474': 5,
+    '1483': 20
+
 }
 
 # add 1 for actual num
 special_endings = {
-    29: 77,
-    30: 44,
-	0: 6
 }
 
 
@@ -92,19 +102,19 @@ def get_data_and_prices():
 
 
 def getNum(s):
-    if (s == '0' or s == 0):
+    if (s == '0' or s == 0 or s == '071610501546' or s == 71610501546):
         return 0
     return int(str(s)[11:14])
 
 
 def getPrice(s):
-    if (s == '0' or s == 0):
+    if (s == '0' or s == 0 or s == '071610501546' or s == 71610501546):
         return 0
     return prices_of_games[str(s)[0:4]]
 
 
 def getGame(s):
-    if (s == '0' or s == 0):
+    if (s == '0' or s == 0 or s == '071610501546' or s == 71610501546):
         return 0
     return str(s)[0:4]
 

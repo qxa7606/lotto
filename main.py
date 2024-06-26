@@ -1,7 +1,11 @@
+#!/bin/env python
 from datetime import datetime
 import glob
 import os
-from tabulate import tabulate
+# from tabulate import tabulate
+import requests
+import scrapy
+import csv
 
 book_count = {
     '1': 250,
@@ -13,67 +17,6 @@ book_count = {
 	'30': 50
 }
 
-prices_of_games = {
-    '1408': 1,
-    '1460': 20,
-    '1439': 20,
-    '1400': 10,
-    '1465': 10,
-    '1448': 10,
-    '1456': 10,
-    '1450': 5,
-    '1466': 5,
-    '1408': 1,
-    '1463': 1,
-    '1455': 1,
-    '1444': 2,
-    '1393': 2,
-    '1429': 2,
-    '1458': 5,
-    '1461': 5,
-    '1479': 5,
-    '1447': 5,
-    '1440': 5,
-    '1424': 5,
-    '1443': 5,
-    '1441': 5,
-    '1419': 10,
-    '1454': 1,
-    '1451': 3,
-    '1473': 3,
-    '1482': 5,
-    '1449': 10,
-    '1425': 20,
-    '1395': 5,
-    '1471': 1,
-    '1423': 2,
-	'1470': 2,
-	'1472': 10,
-	'1468': 30,
-	'1405': 5,
-	'1431': 5,
-	'1407': 5,
-	'1442': 3,
-    '1476': 1,
-    '1475': 2,
-    '1459': 1,
-    '1452': 5,
-    '1446': 1,
-    '1480': 2,
-    '1467': 5,
-    '1477': 2,
-    '1462': 2,
-    '1484': 2,
-    '1474': 5,
-    '1483': 20
-
-}
-
-# add 1 for actual num
-special_endings = {
-}
-
-
 def copy_data():
     with open("data.txt", 'r') as stream:
         data = stream.read().splitlines()
@@ -83,9 +26,18 @@ def copy_data():
     dt = now.strftime("%Y-%m-%d_%H%M%S") + '.txt'
 
     with open(f'temp/{dt}', 'w+') as stream:
-        for x in data:
+        for x in data[:-1]:
             stream.write(f'{x}\n')
+        stream.write(f'{data[-1]}')
 
+# https://www.nylottery.org/information/scratch-off-tickets
+def update_game_prices():
+    prices = {}
+    with open('gamePrices.txt', mode ='r')as file:
+        csvFile = csv.reader(file, delimiter='\t')
+        for lines in csvFile:
+                prices[int(lines[1])] = int(lines[-1][1:])
+    return prices
 
 def get_data_and_prices():
     list_of_files = sorted(
@@ -94,90 +46,84 @@ def get_data_and_prices():
     old = list_of_files[1]
     with open(new, 'r') as stream:
         new_data = stream.read().splitlines()
-        new_data = [int(x) for x in new_data]
     with open(old, 'r') as stream:
         old_data = stream.read().splitlines()
-        old_data = [int(x) for x in old_data]
     return new_data, old_data
 
-
-def getNum(s):
-    if (s == '0' or s == 0 or s == '071610501546' or s == 71610501546):
-        return 0
-    return int(str(s)[11:14])
-
-
-def getPrice(s):
-    if (s == '0' or s == 0 or s == '071610501546' or s == 71610501546):
-        return 0
-    return prices_of_games[str(s)[0:4]]
-
-
-def getGame(s):
-    if (s == '0' or s == 0 or s == '071610501546' or s == 71610501546):
-        return 0
-    return str(s)[0:4]
-
-
-def get_sales(new_data, old_data, num_slots):
-    sales = []
-    for i in range(num_slots):
-        sale = 0
-        # end of book
-        if (getNum(new_data[i]) == 0):
-            if (getNum(old_data[i]) != 0):
-                pc = getPrice(old_data[i])
-                if i in special_endings:
-                    sale = (getNum(old_data[i]) - special_endings[i]) * pc
-                    print('REMOVE index ' + str(i) + 'from special endings')
-                else:
-                    sale = getNum(old_data[i]) * pc
-        # something still in the slot
+def calc(oldD, newD, gp):
+    count = 0
+    o = [x[:12] for x in oldD]
+    n = [x[:12] for x in newD]
+    # o o --
+    # x o
+    # x x --
+    # o x --
+    counter = 0
+    for nx in n:
+        counter += 1
+        if len(nx) < 12 or int(nx[:4]) not in gp:
+            pass
+        elif nx in o:
+            oInfo = None
+            nInfo = None
+            for e in oldD:
+                if e[:12] == nx:
+                    oInfo = e
+            for e in newD:
+                if e[:12] == nx:
+                    nInfo = e
+            curr = (int(oInfo[11:14]) - int(nInfo[11:14])) * gp[int(nx[:4])]
+            print(f'{counter}) {nx[:4]} ${gp[int(nx[:4])]} {oInfo[11:14]} -> {nInfo[11:14]} == {curr}')
+            count += curr
         else:
-            # previous was 0
-            if (getNum(old_data[i]) == 0):
-                sale = (book_count[str(getPrice(new_data[i]))] -
-                        getNum(new_data[i])) * getPrice(new_data[i])
-            # previous was non-0
-            else:
-                # normal decrease
-                if (getNum(new_data[i]) <= getNum(old_data[i])) and (getGame(new_data[i]) == getGame(old_data[i])):
-                    sale = (
-                        getNum(old_data[i]) - getNum(new_data[i])) * getPrice(new_data[i])
-                # new book
-                else:
-                    old_sale = getNum(old_data[i]) * getPrice(old_data[i])
-                    if i in special_endings:
-                        old_sale = (
-                            getNum(old_data[i]) - special_endings[i]) * getPrice(old_data[i])
-                        print('REMOVE index ' + str(i) + 'from special endings')
-                    new_sale = (book_count[str(getPrice(new_data[i]))] -
-                                getNum(new_data[i])) * getPrice(new_data[i])
-                    sale = old_sale + new_sale
-        sales.append(sale)
-    return sales
-
+            # new game
+            nInfo = None
+            for e in newD:
+                if e[:12] == nx:
+                    nInfo = e
+            curr = (book_count[str(gp[int(nInfo[:4])])] - int(nInfo[11:14])) * gp[int(nInfo[:4])]
+            print(f'{counter}) {nInfo[:4]} ${gp[int(nInfo[:4])]} {gp[int(nInfo[:4])]} -> {nInfo[11:14]} == {curr}')
+            count += curr
+    counter = 0
+    for ox in o:
+        counter += 1
+        if int(ox[:4]) in gp and ox not in n and len(ox) > 11:
+            oInfo = None
+            for e in oldD:
+                if e[:12] == ox:
+                    oInfo = e
+            curr = int(oInfo[11:14]) * gp[int(oInfo[:4])]
+            print(f'{counter}) {oInfo[:4]} ${gp[int(oInfo[:4])]} {int(oInfo[11:14])} -> 0 == {curr}')
+            count += curr
+    return count
 
 def main():
-    copy_data()
-    new, old = get_data_and_prices()
-    num_slots = max(len(new), len(old))
-    sales = get_sales(new, old, num_slots)
-    # print(sales)
-    print(f'Total Sales: {sum(sales)}')
+    # copy_data()
+    gp = update_game_prices()
+    newD, oldD = get_data_and_prices()
+    cnt = calc(oldD, newD, gp)
+    print(cnt)
+    # 1558 0315083 023 0481458247	
+    # 1558 0315083 024 1712516018
 
-    print(
-        tabulate(
-            [
-                ['Old'] + [str(x)[11:14] for x in old],
-                ['New'] + [str(x)[11:14] for x in new],
-                ['Sales'] + sales
-            ],
-            ['Slot'] + [x + 1 for x in range(num_slots + 1)]
-        )
-    )
+    # new, old = get_data_and_prices()
+    # num_slots = max(len(new), len(old))
+    # sales = get_sales(new, old, num_slots)
+    # # print(sales)
+    # print(f'Total Sales: {sum(sales)}')
 
-    print(f'Total Sales: {sum(sales)}')
+    # print(
+    #     tabulate(
+    #         [
+    #             ['Old'] + [str(x)[11:14] for x in old],
+    #             ['New'] + [str(x)[11:14] for x in new],
+    #             ['Sales'] + sales
+    #         ],
+    #         ['Slot'] + [x + 1 for x in range(num_slots + 1)]
+    #     )
+    # )
+
+    # print(f'Total Sales: {sum(sales)}')
 
 
 main()

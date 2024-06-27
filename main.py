@@ -50,8 +50,8 @@ def get_data_and_prices():
 
 def calc(oldD, newD, gp):
     count = 0
-    o = [x[:12] for x in oldD]
-    n = [x[:12] for x in newD]
+    o = [x[:11] for x in oldD]
+    n = [x[:11] for x in newD]
     # o o --
     # x o
     # x x --
@@ -59,16 +59,16 @@ def calc(oldD, newD, gp):
     counter = 0
     for nx in n:
         counter += 1
-        if len(nx) < 12 or int(nx[:4]) not in gp:
+        if len(nx) < 11 or int(nx[:4]) not in gp:
             pass
         elif nx in o:
             oInfo = None
             nInfo = None
             for e in oldD:
-                if e[:12] == nx:
+                if e[:11] == nx:
                     oInfo = e
             for e in newD:
-                if e[:12] == nx:
+                if e[:11] == nx:
                     nInfo = e
             curr = (int(oInfo[11:14]) - int(nInfo[11:14])) * gp[int(nx[:4])]
             print(f'{counter}) {nx[:4]} ${gp[int(nx[:4])]} {oInfo[11:14]} -> {nInfo[11:14]} == {curr}')
@@ -77,7 +77,7 @@ def calc(oldD, newD, gp):
             # new game
             nInfo = None
             for e in newD:
-                if e[:12] == nx:
+                if e[:11] == nx:
                     nInfo = e
             curr = (book_count[str(gp[int(nInfo[:4])])] - int(nInfo[11:14])) * gp[int(nInfo[:4])]
             print(f'{counter}) {nInfo[:4]} ${gp[int(nInfo[:4])]} {gp[int(nInfo[:4])]} -> {nInfo[11:14]} == {curr}')
@@ -88,7 +88,7 @@ def calc(oldD, newD, gp):
         if int(ox[:4]) in gp and ox not in n and len(ox) > 11:
             oInfo = None
             for e in oldD:
-                if e[:12] == ox:
+                if e[:11] == ox:
                     oInfo = e
             curr = int(oInfo[11:14]) * gp[int(oInfo[:4])]
             print(f'{counter}) {oInfo[:4]} ${gp[int(oInfo[:4])]} {int(oInfo[11:14])} -> 0 == {curr}')
@@ -103,25 +103,5 @@ def main():
     print(cnt)
     # 1558 0315083 023 0481458247	
     # 1558 0315083 024 1712516018
-
-    # new, old = get_data_and_prices()
-    # num_slots = max(len(new), len(old))
-    # sales = get_sales(new, old, num_slots)
-    # # print(sales)
-    # print(f'Total Sales: {sum(sales)}')
-
-    # print(
-    #     tabulate(
-    #         [
-    #             ['Old'] + [str(x)[11:14] for x in old],
-    #             ['New'] + [str(x)[11:14] for x in new],
-    #             ['Sales'] + sales
-    #         ],
-    #         ['Slot'] + [x + 1 for x in range(num_slots + 1)]
-    #     )
-    # )
-
-    # print(f'Total Sales: {sum(sales)}')
-
 
 main()

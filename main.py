@@ -3,8 +3,6 @@ from datetime import datetime
 import glob
 import os
 # from tabulate import tabulate
-import requests
-import scrapy
 import csv
 
 book_count = {
@@ -98,7 +96,7 @@ def calc(oldD, newD, gp):
     return count
 
 def main():
-    # copy_data()
+    copy_data()
     gp = update_game_prices()
     newD, oldD = get_data_and_prices()
     cnt = calc(oldD, newD, gp)
